@@ -1,65 +1,67 @@
-const jsPsych = initJsPsych();
-let timeline = [];
 
-// Intro screen with button "ROZPOCZNIJ TEST"
-timeline.push({
-  type: jsPsychHtmlButtonResponse,
-  stimulus: '<p style="font-size: 32px;">ROZPOCZNIJ TEST</p>',
-  choices: ['Start']
+// 🔧 STEP 1: Replace the following config with your actual Firebase project config
+const firebaseConfig = {
+  apiKey: "AIzaSyCjiVFX0HHhSd0RC03LPfpZpUjGDsUBwzo",
+  authDomain: "decoding-1bba4.firebaseapp.com",
+  databaseURL: "https://decoding-1bba4-default-rtdb.firebaseio.com",
+  projectId: "decoding-1bba4",
+  storageBucket: "decoding-1bba4.appspot.com",
+  messagingSenderId: "417887788383",
+  appId: "1:417887788383:web:e99b2dd35976c102dfeaea",
+  measurementId: "G-GYEVJR5WNH"
+};
+
+firebase.initializeApp(firebaseConfig);
+firebase.auth().signInAnonymously().catch(function(error) {
+  console.error("Firebase auth error:", error);
 });
 
-Papa.parse('words_cleaned.csv', {
+const db = firebase.database();
+
+// ✅ Initialize jsPsych properly (for v7)
+const jsPsych = initJsPsych({
+  on_finish: function() {
+    const data = jsPsych.data.get().json();
+    const timestamp = new Date().toISOString();
+
+    db.ref("experiments/" + timestamp).set({
+      data: JSON.parse(data)
+    }).then(() => {
+      console.log("Data saved to Firebase.");
+    }).catch((error) => {
+      console.error("Firebase save error:", error);
+    });
+  }
+});
+
+// === Your jsPsych timeline and logic ===
+
+Papa.parse("words_cleaned.csv", {
   download: true,
   header: true,
   complete: function(results) {
-    let raw = results.data;
+    const stimuli = results.data.map(row => row.word);
 
-    let trials = raw.filter(trial => {
-      const words = [trial.Word1, trial.Word2, trial.Word3];
-      const allWordsValid = words.every(w => typeof w === 'string' && w.trim().length > 0);
-      const correctIndex = parseInt(trial.Correct) - 1;
-      const validCorrect = ['1', '2', '3'].includes(String(trial.Correct).trim());
-      return allWordsValid && validCorrect && typeof words[correctIndex] !== 'undefined';
-    });
+    const timeline = [];
 
-    for (let i = 0; i < trials.length; i++) {
-      let trial = trials[i];
-      let choices = [trial.Word1, trial.Word2, trial.Word3];
-      let correctIndex = parseInt(trial.Correct) - 1;
-      let correctWord = choices[correctIndex];
-
-      // Safety check
-      if (
-        choices.length !== 3 ||
-        choices.some(w => typeof w !== 'string' || w.trim() === '') ||
-        typeof correctWord === 'undefined'
-      ) {
-        console.warn("Skipping invalid trial at index", i, trial);
-        continue;
-      }
-
-      timeline.push({
-        type: jsPsychHtmlButtonResponse,
-        stimulus: '<div style="font-size: 48px;">&nbsp;</div>',
-        choices: choices.map(word => `<span style="font-size: 48px;">${word}</span>`),
-        data: {
-          correct: correctWord
-        },
-        on_finish: function(data){
-          data.response_word = choices[data.response];
-          data.correct_response = data.response_word === data.correct;
-        }
-      });
-    }
-
-    // Final screen
     timeline.push({
       type: jsPsychHtmlButtonResponse,
-      stimulus: '<p style="font-size: 32px;">DZIĘKUJEMY!</p>',
-      choices: ['Pobierz wyniki'],
-      on_finish: function() {
-        jsPsych.data.get().localSave('csv', 'word_task_results.csv');
-      }
+      stimulus: "Welcome to the word experiment. Click below to start.",
+      choices: ["Start"]
+    });
+
+    stimuli.forEach(word => {
+      timeline.push({
+        type: jsPsychHtmlButtonResponse,
+        stimulus: word,
+        choices: ["OK"]
+      });
+    });
+
+    timeline.push({
+      type: jsPsychSurveyHtmlForm,
+      html: '<p>Any comments?</p><textarea name="comments" rows="5" cols="50"></textarea>',
+      button_label: "Submit"
     });
 
     jsPsych.run(timeline);

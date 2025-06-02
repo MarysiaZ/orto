@@ -1,20 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8">
-  <title>jsPsych Word Task</title>
-  <script src="https://unpkg.com/jspsych@7.3.0/jspsych.js"></script>
-  <script src="https://unpkg.com/@jspsych/plugin-html-button-response@2.1.1"></script>
-  <script src="https://unpkg.com/@jspsych/plugin-survey-html-form@2.1.1"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+  <title>Word Choice Task</title>
 
-  <!-- 🔧 Firebase Compat SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+  <!-- jsPsych core (UMD version) -->
+  <script src="https://unpkg.com/jspsych@7.3.0"></script>
+  <link href="https://unpkg.com/jspsych@7.3.0/css/jspsych.css" rel="stylesheet">
 
+  <!-- jsPsych plugin (UMD version) -->
+  <script src="https://unpkg.com/@jspsych/plugin-html-button-response@1.0.0"></script>
+
+  <!-- PapaParse (for CSV loading) -->
+  <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
-<body>
-  <script src="script.js"></script>
-</body>
+<body></body>
+
+<!-- your script -->
+<script src="script.js"></script>
 </html>
